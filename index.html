@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Training">
+<meta name="theme-color" content="#080f1a">
+<title>Training 80/20</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#080f1a;color:#f1f5f9;font-family:-apple-system,'SF Pro Display',sans-serif;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
+.screen{flex:1;overflow-y:auto;padding:0 16px 90px;-webkit-overflow-scrolling:touch}
+.header{padding:env(safe-area-inset-top,20px) 18px 12px;background:rgba(8,15,26,0.97);border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)}
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.label{font-size:11px;color:#38bdf8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px}
+.title{font-size:22px;font-weight:700;letter-spacing:-0.02em}
+.tabs{display:flex;gap:4px}
+.tab{flex:1;padding:7px 0;border-radius:8px;border:none;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.tab.active{background:#38bdf8;color:#080f1a;font-weight:700}
+.tab.inactive{background:rgba(255,255,255,0.05);color:#64748b}
+.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.section-title{font-size:11px;color:#38bdf8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;font-weight:600;margin-top:4px}
+.btn{border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;transition:all 0.2s}
+.btn-primary{background:#38bdf8;color:#080f1a}
+.btn-primary:disabled{background:#1e293b;color:#475569;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.1);color:#64748b}
+.input{width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;color:#f1f5f9;font-size:14px;font-family:inherit;outline:none}
+.input:focus{border-color:rgba(56,189,248,0.4)}
+textarea.input{min-height:60px;resize:none}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;display:inline-block}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;display:flex;align-items:flex-end;backdrop-filter:blur(8px)}
+.modal{width:100%;max-width:480px;margin:0 auto;background:#0f172a;border-radius:20px 20px 0 0;padding:24px 20px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));border:1px solid rgba(255,255,255,0.08);max-height:90vh;overflow-y:auto}
+.score-row{display:flex;gap:5px;margin-bottom:14px}
+.score-btn{flex:1;padding:9px 2px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#64748b;font-size:10px;cursor:pointer;font-family:inherit;text-align:center;line-height:1.3;transition:all 0.15s}
+.day-card{background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.day-card.done{background:rgba(56,189,248,0.06);border-color:rgba(56,189,248,0.2)}
+.progress-bar{height:3px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:4px;transition:width 0.4s}
+.event-chip{flex-shrink:0;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:10px 14px;min-width:130px}
+.event-chip.urgent{background:rgba(251,146,60,0.1);border-color:rgba(251,146,60,0.3)}
+.scroll-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
+.scroll-row::-webkit-scrollbar{display:none}
+.stat-box{flex:1;background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 8px;text-align:center;border:1px solid rgba(255,255,255,0.06)}
+.empty-state{text-align:center;padding:60px 20px;color:#475569}
+.log-entry{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,0.03);border-radius:9px;border:1px solid rgba(255,255,255,0.05)}
+.hbtn{background:rgba(255,255,255,0.06);border:none;color:#94a3b8;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.settings-panel{background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.07);padding:12px;margin-bottom:10px}
+.garmin-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.garmin-box{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px}
+.garmin-label{font-size:10px;color:#475569;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em}
+.garmin-input{background:none;border:none;color:#f1f5f9;font-size:16px;font-weight:600;font-family:inherit;width:100%;outline:none}
+.garmin-unit{font-size:10px;color:#475569;margin-top:2px}
+.sync-status{font-size:11px;color:#38bdf8;text-align:right;margin-bottom:4px;opacity:0;transition:opacity 0.3s;min-height:16px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header" id="header">
+    <div class="header-row">
+      <div>
+        <div class="label">Trainingsplan · 80/20</div>
+        <div class="title" id="header-title">Dashboard</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div id="week-nav" style="display:none;gap:6px;align-items:center">
+          <button class="hbtn" onclick="changeWeek(-1)">&#8249;</button>
+          <span id="week-num" style="font-size:13px;color:#94a3b8;min-width:20px;text-align:center">1</span>
+          <button class="hbtn" onclick="changeWeek(1)">&#8250;</button>
+        </div>
+        <button class="hbtn" onclick="toggleSettings()" id="settings-btn">&#9881;</button>
+      </div>
+    </div>
+    <div class="sync-status" id="sync-status"></div>
+    <div id="settings-panel" style="display:none" class="settings-panel">
+      <div style="font-size:11px;color:#475569;margin-bottom:4px">Verletzungshinweis</div>
+      <input class="input" id="injury-input" placeholder="z.B. Wade links, vorsichtig" style="margin-bottom:8px;font-size:13px">
+      <div style="font-size:11px;color:#475569;margin-bottom:4px;margin-top:4px">Aktuelles Ziel</div>
+      <input class="input" id="goal-input" value="HM Hamburg 28.06. in 2:15h" style="font-size:13px;margin-bottom:12px">
+      <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px">
+        <div style="font-size:12px;font-weight:600;color:#38bdf8;margin-bottom:8px">&#9729;&#65039; Cloud-Sync (JSONBin.io)</div>
+        <div style="font-size:11px;color:#475569;margin-bottom:4px">API Master Key</div>
+        <input class="input" id="cloud-key-input" placeholder="$2a$10$..." style="margin-bottom:8px;font-size:12px">
+        <div style="font-size:11px;color:#475569;margin-bottom:4px">Bin ID</div>
+        <input class="input" id="cloud-bin-input" placeholder="wird automatisch gesetzt" style="margin-bottom:10px;font-size:12px">
+        <div style="display:flex;gap:8px">
+          <button onclick="saveCloudSettings()" style="flex:2;padding:9px;background:#38bdf8;border:none;border-radius:9px;color:#080f1a;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Speichern &amp; Sync</button>
+          <button onclick="loadFromCloud()" style="flex:1;padding:9px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#64748b;font-size:12px;cursor:pointer;font-family:inherit">&#8635; Laden</button>
+        </div>
+        <div style="font-size:10px;color:#334155;margin-top:8px">Key von jsonbin.io &#8594; kostenlos registrieren &#8594; API Keys</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tab-dashboard" onclick="setTab('dashboard')">Dashboard</button>
+      <button class="tab inactive" id="tab-plan" onclick="setTab('plan')">Woche</button>
+      <button class="tab inactive" id="tab-history" onclick="setTab('history')">Verlauf</button>
+      <button class="tab inactive" id="tab-form" onclick="setTab('form')">Form</button>
+      <button class="tab inactive" id="tab-zones" onclick="setTab('zones')">Zonen</button>
+    </div>
+  </div>
+  <div class="screen" id="screen"></div>
+</div>
+<div id="checkin-modal" class="modal-backdrop" style="display:none">
+  <div class="modal" id="checkin-inner"></div>
+</div>
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+var EVENTS = [
+  {date:'2026-06-28',label:'HM Hamburg 2:15h &#x1F3C6;',icon:'&#x1F3C1;'},
+  {date:'2026-09-20',label:'10km Ziel 58:00',icon:'&#x1F3AF;'}
+];
+var SPORT_ICONS = {Laufen:'&#x1F3C3;&#x200D;&#x2640;&#xFE0F;',Rad:'&#x1F6B4;&#x200D;&#x2640;&#xFE0F;',Gym:'&#x1F3CB;&#x200D;&#x2640;&#xFE0F;',Rest:'&#x1F4A4;'};
+var SPORT_COLORS = {Laufen:'#38bdf8',Rad:'#4ade80',Gym:'#fb923c',Rest:'#1e293b'};
+var FEELING_LABELS = ['Kaputt','Muede','Ok','Gut','Top'];
+var FEELING_EMOJIS = ['&#x1F480;','&#x1F625;','&#x1F610;','&#x1F60A;','&#x1F525;'];
+var FEELING_COLORS = ['#f43f5e','#fb923c','#facc15','#4ade80','#38bdf8'];
+var ZONE_COLORS = ['#6366f1','#38bdf8','#2dd4bf','#4ade80','#fb923c'];
+
+var HISTORICAL_TSS = {
+  // Mai 2026
+  '2026-05-01':34,   // Rad 31min
+  '2026-05-02':145,  // Rad 2:45h 68km
+  '2026-05-03':168,  // Rad 4:04h 85km
+  '2026-05-05':62,   // Laufen 29min 8:17 HF147
+  '2026-05-06':45,   // Rad 1h 21km
+  '2026-05-09':134,  // Rad 2:20h + 19min
+  '2026-05-10':90,   // Laufen 42min 8:26 HF152
+  '2026-05-12':81,   // Rad 1:13h 33km
+  '2026-05-14':25,   // Rad 30min 14km
+  '2026-05-16':63,   // Laufen 30min 8:29 HF141
+  '2026-05-18':62,   // Laufen 30min 8:33 HF146
+  '2026-05-21':91,   // Laufen 45min 8:37 HF147
+  '2026-05-23':255,  // Rad 4:38h 100km!
+  '2026-05-24':83,   // Rad 51min + Wandern
+  '2026-05-27':62,   // Laufen 30min 8:32 HF145
+  '2026-05-28':163,  // Laufen 30min + Rad 2:02h
+  '2026-05-31':123,  // Longrun 56min 6.7km HF143
+  // Juni 2026
+  '2026-06-02':66,   // Laufen 30min 8:22 HF144
+  '2026-06-04':30,   // Easy Run 7km 8:34 HF144
+  '2026-06-07':95,   // Longrun 10km 1:24h 8:27 HF145 (Radrennen abgesagt)
+  '2026-06-09':32,   // Easy Run 3.7km 8:07 HF141
+  '2026-06-11':60,   // Intervalle 6km 7:34 HF156
+};
+
+var TRAINER_WEEK = {
+  weekFocus:'Aufbauwoche · Kraft + Longrun + Ride',
+  weeklyLoad:'mittel',
+  coachNote:'Gute Woche bisher! Intervalle am Donnerstag waren stark. Freitag Kraft, Samstag langer Lauf bis 155bpm, Sonntag lockere Radstunde.',
+  days:[
+    {day:'Montag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Erholung nach dem Longrun am Sonntag.',intensity:'easy'},
+    {day:'Dienstag',sport:'Laufen',title:'Easy Run HR',duration:'30 min',zones:'Zone 1-2',description:'3.70km, Pace 8:07, HF 141 bpm. Erledigt!',intensity:'easy'},
+    {day:'Mittwoch',sport:'Gym',title:'Strength',duration:'60 min',zones:'',description:'Krafttraining.',intensity:'moderate'},
+    {day:'Donnerstag',sport:'Laufen',title:'Intervalle',duration:'45 min',zones:'Zone 3-5',description:'Getting back - Intervals. 6km, Pace 7:34, HF 156. Erledigt!',intensity:'hard'},
+    {day:'Freitag',sport:'Gym',title:'Krafttraining',duration:'60 min',zones:'',description:'Kraft wie vom Trainer vorgegeben.',intensity:'moderate'},
+    {day:'Samstag',sport:'Laufen',title:'Long Run',duration:'1:30h',zones:'Zone 2',description:'Longrun bis max. 148 bpm. Locker und gleichmaessig.',intensity:'moderate'},
+    {day:'Sonntag',sport:'Rad',title:'Long Ride',duration:'1:00h',zones:'Zone 2',description:'Lockere Radausfahrt 1 Stunde. HF unter 142 bpm.',intensity:'easy'}
+  ]
+};
+
+var WEEK2_PLAN = {
+  weekFocus:'Strides & Kontrollierte Intervalle',
+  weeklyLoad:'mittel',
+  coachNote:'Zwei strukturierte Einheiten diese Woche. Montag Strides locker, Mittwoch kontrollierte 1km-Intervalle bei 6:30. Samstag langer Lauf bis 155bpm.',
+  days:[
+    {day:'Montag',sport:'Laufen',title:'Strides',duration:'38 min',zones:'Zone 1-2 + Z4',description:'30 min locker (130-157bpm, Z1-2), dann 4x 30sek Beschleunigung Z4 (179bpm) mit je 1:30 Easy Pause. 5km, 27 TSS.',intensity:'moderate'},
+    {day:'Dienstag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Aktive Erholung.',intensity:'easy'},
+    {day:'Mittwoch',sport:'Laufen',title:'Kontrollierte Intervalle',duration:'55 min',zones:'Zone 2-3',description:'1km Warmup Z1, 4x Strides (163-176bpm) mit 30sek Pause, dann 4x 1km @ 6:30 Pace (152-167bpm, Z2-3) mit 1:30 Pause, 10min Cool Down. 6.84km, 46 TSS.',intensity:'hard'},
+    {day:'Donnerstag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Erholung nach den Intervallen.',intensity:'easy'},
+    {day:'Freitag',sport:'Gym',title:'Krafttraining',duration:'60 min',zones:'',description:'Krafttraining wie vom Trainer.',intensity:'moderate'},
+    {day:'Samstag',sport:'Laufen',title:'Long Run',duration:'1:15h',zones:'Zone 2',description:'Longrun bis max. 148 bpm. Locker und gleichmaessig, nicht schneller werden.',intensity:'moderate'},
+    {day:'Sonntag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Vollstaendige Erholung.',intensity:'easy'}
+  ]
+};
+
+var WEEK3_PLAN = {
+  weekFocus:'Race Week Hamburg · Beine frisch halten',
+  weeklyLoad:'leicht',
+  coachNote:'Letzte Woche vor dem HM. Nur noch aktivieren, kein neuer Stress. Vertraue dem Training der letzten Wochen!',
+  days:[
+    {day:'Montag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Vollstaendige Erholung. Beine hochlegen.',intensity:'easy'},
+    {day:'Dienstag',sport:'Laufen',title:'Intervalle leicht',duration:'38 min',zones:'Zone 1-4',description:'1km Warmup (130-148bpm), 4x Strides (163-176bpm, nicht all out) mit 30sek Easy, dann 2x 1km @ 6:30 (152-167bpm) mit 1:30 Pause, 10min Cooldown. 4.5km, 30 TSS.',intensity:'moderate'},
+    {day:'Mittwoch',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Erholung nach den Intervallen.',intensity:'easy'},
+    {day:'Donnerstag',sport:'Laufen',title:'Easy Run + Strides',duration:'38 min',zones:'Zone 1-2',description:'30min locker (130-157bpm), dann 4x 30sek Beschleunigung Z4 (179bpm, immer schneller aber nicht all out) mit je 1:30 Easy Pause. 5km, 27 TSS.',intensity:'moderate'},
+    {day:'Freitag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Fuesse hochlegen, Ausruestung checken, frueh schlafen.',intensity:'easy'},
+    {day:'Samstag',sport:'Laufen',title:'Shakeout',duration:'29 min',zones:'Zone 1-2',description:'15min locker (130-157bpm), dann 4x 30sek Beschleunigung mit 3min Easy. Nur Beine aktivieren. 3.87km, 21 TSS.',intensity:'easy'},
+    {day:'Sonntag',sport:'Laufen',title:'HALBMARATHON HAMBURG',duration:'~2:15h',zones:'Zone 3-4',description:'Zielpace 6:24/km. Erste 5km konservativ bei 6:30-6:35, dann einpegeln. Du schaffst das!',intensity:'hard'}
+  ]
+};
+
+var WEEK4_PLAN = {
+  weekFocus:'Post-HM Erholung · Vollstaendige Regeneration',
+  weeklyLoad:'leicht',
+  coachNote:'Glueckwunsch zum Halbmarathon! Jetzt ist Erholung Pflicht. Kein Laufen in den ersten 3 Tagen. Der Koerper hat gerade Grosses geleistet.',
+  days:[
+    {day:'Montag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Tag 1 nach dem HM. Vollstaendige Erholung. Beine hochlegen, gut essen, viel trinken.',intensity:'easy'},
+    {day:'Dienstag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Tag 2. Noch kein Sport. Muskeln brauchen Zeit zum Reparieren.',intensity:'easy'},
+    {day:'Mittwoch',sport:'Rest',title:'Aktive Erholung',duration:'30 min',zones:'',description:'Leichter Spaziergang oder lockeres Radfahren. Kein Laufen!',intensity:'easy'},
+    {day:'Donnerstag',sport:'Rest',title:'Aktive Erholung',duration:'30 min',zones:'',description:'Spazieren oder Schwimmen. Stretching und Foam Rolling.',intensity:'easy'},
+    {day:'Freitag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Wie fuehlen sich Beine und Wade an? Gut beobachten.',intensity:'easy'},
+    {day:'Samstag',sport:'Laufen',title:'Erster Lauf nach HM',duration:'20-25 min',zones:'Zone 1',description:'Nur wenn Beine okay sind! Sehr locker, HF unter 141 bpm. Kein Druck, kein Tempo.',intensity:'easy'},
+    {day:'Sonntag',sport:'Rad',title:'Easy Ride',duration:'45 min',zones:'Zone 1',description:'Lockere Radfahrt zur aktiven Erholung. HF unter 118 bpm.',intensity:'easy'}
+  ]
+};
+
+var WEEK5_PLAN = {
+  weekFocus:'Langsamer Wiedereinstieg · Kein Stress',
+  weeklyLoad:'leicht',
+  coachNote:'Erste richtige Trainingswoche nach dem HM. Kein Intensitaet! Nur Zone 1-2. Ziel fuer Sept: 10km in 58min (5:48/km). Erstmal Grundlage legen.',
+  days:[
+    {day:'Montag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Erholung.',intensity:'easy'},
+    {day:'Dienstag',sport:'Laufen',title:'Easy Run',duration:'25 min',zones:'Zone 1',description:'Sehr locker, HF unter 141 bpm. Pace egal - nur Gefuehl zaehlt. Wade beobachten!',intensity:'easy'},
+    {day:'Mittwoch',sport:'Gym',title:'Kraft leicht',duration:'45 min',zones:'',description:'Rueckzur Routine. Leichte Gewichte, Fokus auf Stabilitaet.',intensity:'easy'},
+    {day:'Donnerstag',sport:'Laufen',title:'Easy Run',duration:'30 min',zones:'Zone 1-2',description:'Etwas laenger als Dienstag. HF 141-155 bpm. Kein Tempo.',intensity:'easy'},
+    {day:'Freitag',sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Gut schlafen.',intensity:'easy'},
+    {day:'Samstag',sport:'Laufen',title:'Easy Run',duration:'35 min',zones:'Zone 2',description:'Erster etwas laengerer Lauf. Pace 8:33-9:29. Alles locker.',intensity:'easy'},
+    {day:'Sonntag',sport:'Rad',title:'Easy Ride',duration:'60 min',zones:'Zone 2',description:'Lockere Radstunde. HF 118-142 bpm.',intensity:'easy'}
+  ]
+};
+
+// ── State ──────────────────────────────────────────────────────────────────
+var STATE = {tab:'dashboard',weekNum:1,weekStore:{},logStore:{},checkins:[],showSettings:false};
+
+function todayStr(){return new Date().toISOString().slice(0,10)}
+function daysUntil(d){return Math.ceil((new Date(d)-new Date(todayStr()))/86400000)}
+function dayName(){var n=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];return n[new Date().getDay()]}
+
+function saveLocal(){try{localStorage.setItem('training_v3',JSON.stringify({weekStore:STATE.weekStore,logStore:STATE.logStore,checkins:STATE.checkins}))}catch(e){}}
+function loadLocal(){try{var d=JSON.parse(localStorage.getItem('training_v3')||'{}');if(d.weekStore)STATE.weekStore=d.weekStore;if(d.logStore)STATE.logStore=d.logStore;if(d.checkins)STATE.checkins=d.checkins}catch(e){}}
+function getCloudKey(){return localStorage.getItem('jsonbin_key')||''}
+function getCloudBin(){return localStorage.getItem('jsonbin_bin')||''}
+
+function showSyncStatus(msg){var el=document.getElementById('sync-status');if(el){el.textContent=msg;el.style.opacity='1';setTimeout(function(){el.style.opacity='0'},2500)}}
+
+async function syncToCloud(){
+  var key=getCloudKey(),bin=getCloudBin();if(!key)return;
+  var data={weekStore:STATE.weekStore,logStore:STATE.logStore,checkins:STATE.checkins};
+  try{
+    if(!bin){
+      var r=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':key,'X-Bin-Name':'training-app','X-Bin-Private':'false'},body:JSON.stringify(data)});
+      var j=await r.json();if(j.metadata&&j.metadata.id){localStorage.setItem('jsonbin_bin',j.metadata.id);showSyncStatus('✓ Cloud gespeichert')}
+    }else{
+      await fetch('https://api.jsonbin.io/v3/b/'+bin,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':key},body:JSON.stringify(data)});
+      showSyncStatus('✓ Cloud gespeichert');
+    }
+  }catch(e){showSyncStatus('⚠ Sync fehlgeschlagen')}
+}
+
+async function loadFromCloud(){
+  var key=getCloudKey(),bin=getCloudBin();if(!key||!bin)return;
+  showSyncStatus('↻ Lade von Cloud...');
+  try{
+    var r=await fetch('https://api.jsonbin.io/v3/b/'+bin+'/latest',{headers:{'X-Master-Key':key}});
+    var j=await r.json();if(j.record){var d=j.record;if(d.weekStore)STATE.weekStore=d.weekStore;if(d.logStore)STATE.logStore=d.logStore;if(d.checkins)STATE.checkins=d.checkins;saveLocal();showSyncStatus('✓ Cloud geladen');render()}
+  }catch(e){showSyncStatus('⚠ Laden fehlgeschlagen')}
+}
+
+async function saveCloudSettings(){
+  var key=document.getElementById('cloud-key-input').value.trim();
+  var bin=document.getElementById('cloud-bin-input').value.trim();
+  if(key)localStorage.setItem('jsonbin_key',key);
+  if(bin)localStorage.setItem('jsonbin_bin',bin);
+  if(key)await loadFromCloud();
+  showSyncStatus('✓ Einstellungen gespeichert');
+}
+
+function saveData(){saveLocal();syncToCloud()}
+
+// ── Plan Generation ────────────────────────────────────────────────────────
+function generateWeekPlan(){
+  var w=STATE.weekNum,injury=document.getElementById('injury-input').value||'';
+  var isRecovery=w%4===0,isHard=w%4===2;
+  var load=isRecovery?'leicht':isHard?'hoch':'mittel';
+  var structs=[
+    ['Rest','Laufen','Gym','Laufen','Rest','Rad','Laufen'],
+    ['Laufen','Rest','Laufen','Gym','Rest','Rad','Laufen'],
+    ['Rest','Laufen','Rad','Gym','Laufen','Rest','Laufen']
+  ];
+  var struct=structs[(w-1)%3];
+  var days=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+  var longDur=w<=2?'60 min':w<=5?'70 min':'80 min';
+  var easyDur=isRecovery?'35 min':w<=3?'40 min':'50 min';
+  var inj=injury?' Vorsicht: '+injury+'.':'';
+  var runPool=[
+    {title:'Easy Run',duration:easyDur,zones:'Zone 2',description:'Lockeres Dauertempo, HF max. 148 bpm. Pace 8:33-9:29 min/km.'+inj,intensity:'easy'},
+    {title:'Grundlage',duration:easyDur,zones:'Zone 2',description:'Gleichmaessiges Tempo, HF max. 148 bpm. Fokus auf Gefuehl, nicht auf Pace.',intensity:'easy'},
+    {title:'Longrun',duration:longDur,zones:'Zone 2',description:'Langer lockerer Lauf. HF max. 148 bpm halten. Lieber langsamer als zu schnell.',intensity:'moderate'},
+    {title:'Intervalle',duration:'50 min',zones:'Zone 4-5',description:'15 min Z2 einlaufen, 6x3 min Z4-5 (Pace 6:00-6:11), je 90 sek Pause, 10 min auslaufen.',intensity:'hard'},
+    {title:'Tempolauf',duration:'45 min',zones:'Zone 3',description:'10 min einlaufen, 20 min Z3 (Pace 7:04-8:33), 10 min auslaufen.',intensity:'moderate'}
+  ];
+  var bikePool=[
+    {title:'Radausfahrt',duration:w<=3?'75 min':'90 min',zones:'Zone 2',description:'Lockere Ausfahrt, HF 118-142 bpm.'},
+    {title:'Rad Easy',duration:'60 min',zones:'Zone 1-2',description:'Sehr lockeres Tempo, HF unter 142 bpm.'}
+  ];
+  var gymPool=[
+    {title:'Krafttraining',duration:'60 min',description:'Rumpf, Knie, Hueften. Kniebeuge, Lunges, Planks.'},
+    {title:'Gym & Core',duration:'55 min',description:'Deadlifts, Glute Bridges, Seitst\u00fctze. Verletzungspraevention.'}
+  ];
+  var focuses=['Grundlagenaufbau','Aerobe Basis','Ausdaueraufbau','Aktive Erholung','Temporhaerte','HM-Vorbereitung'];
+  var notes=[
+    'Zone 2 fuehlt sich anfangs zu langsam an - das ist richtig so.',
+    'Konsequenz schlaegt Intensitaet.',
+    'Wenn die Beine schwer sind, lieber kuerzer und lockerer.',
+    'Erholungswoche! Kein Stress.',
+    'Diese Woche darf es einmal mehr wehtun.',
+    'Hamburg rueckt naeher. Vertraue dem Training.'
+  ];
+  var runOrder=isHard?[0,4,2]:isRecovery?[0,1,2]:[0,1,2];
+  var runIdx=0;
+  var planDays=days.map(function(day,i){
+    var sport=struct[i];
+    if(sport==='Rest')return{day:day,sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Aktive Erholung: Spaziergang, Stretching.',intensity:'easy'};
+    if(sport==='Gym'){var g=gymPool[(w-1)%2];return{day:day,sport:'Gym',title:g.title,duration:g.duration,zones:'',description:g.description,intensity:'moderate'}}
+    if(sport==='Rad'){var b=bikePool[(w-1)%2];return{day:day,sport:'Rad',title:b.title,duration:b.duration,zones:b.zones,description:b.description,intensity:'easy'}}
+    if(sport==='Laufen'){var r=runPool[runOrder[runIdx++%runOrder.length]];return{day:day,sport:'Laufen',title:r.title,duration:r.duration,zones:r.zones,description:r.description,intensity:r.intensity}}
+    return{day:day,sport:'Rest',title:'Ruhetag',duration:'',zones:'',description:'Erholung.',intensity:'easy'};
+  });
+  return{weekFocus:focuses[(w-1)%focuses.length],weeklyLoad:load,coachNote:notes[(w-1)%notes.length],days:planDays};
+}
+
+function loadTrainerWeek(){STATE.weekStore[STATE.weekNum]=TRAINER_WEEK;STATE.logStore[STATE.weekNum]={};saveData();render()}
+function handleGenerate(){
+  try{
+    var plan;
+    if(STATE.weekNum===1) plan=TRAINER_WEEK;
+    else if(STATE.weekNum===2) plan=WEEK2_PLAN;
+    else if(STATE.weekNum===3) plan=WEEK3_PLAN;
+    else if(STATE.weekNum===4) plan=WEEK4_PLAN;
+    else if(STATE.weekNum===5) plan=WEEK5_PLAN;
+    else plan=generateWeekPlan();
+    STATE.weekStore[STATE.weekNum]=plan;
+    STATE.logStore[STATE.weekNum]={};
+    saveData();render();
+  }catch(e){alert('Fehler: '+e.message)}
+}
+function toggleLog(day){if(!STATE.logStore[STATE.weekNum])STATE.logStore[STATE.weekNum]={};STATE.logStore[STATE.weekNum][day]=!STATE.logStore[STATE.weekNum][day];saveData();render()}
+
+// Lauf-Daten (TSS pro Tag)
+var RUN_DATA = [
+  ['2026-05-05',62],['2026-05-10',90],['2026-05-16',63],
+  ['2026-05-18',62],['2026-05-21',91],['2026-05-27',62],
+  ['2026-05-28',63],['2026-05-31',123],['2026-06-02',66],
+  ['2026-06-04',30],
+  ['2026-06-13',50],['2026-06-14',0],
+  ['2026-06-16',27],['2026-06-18',46],['2026-06-21',80],
+  ['2026-06-23',30],['2026-06-25',27],['2026-06-27',21]
+];
+// Rad-Daten (TSS pro Tag)
+var BIKE_DATA = [
+  ['2026-05-01',34],['2026-05-02',145],['2026-05-03',168],
+  ['2026-05-06',45],['2026-05-09',134],['2026-05-12',81],
+  ['2026-05-14',25],['2026-05-23',255],['2026-05-24',34],
+  ['2026-05-28',100]
+];
+
+// ── TSS / CTL / ATL ────────────────────────────────────────────────────────
+function parseDuration(str){if(!str)return 0;var p=str.split(':').map(Number);if(p.length===3)return p[0]*3600+p[1]*60+p[2];if(p.length===2)return p[0]*60+p[1];return 0}
+function calcTSS(post,sport){
+  if(!post)return 0;var dur=parseDuration(post.duration);if(dur===0)return 0;
+  var hr=parseInt(post.avgHr)||0,threshold=sport==='Rad'?176:175;
+  var ifv=hr>0?Math.min(hr/threshold,1.15):0.65;
+  return Math.max(Math.round((dur*ifv*ifv)/36),sport==='Gym'?30:0);
+}
+
+function buildTSSMap(sport){
+  // Start with historical data for this sport
+  var map={};
+  var sourceData = sport==='Laufen' ? RUN_DATA : sport==='Rad' ? BIKE_DATA : [];
+  for(var i=0;i<sourceData.length;i++){
+    map[sourceData[i][0]]=sourceData[i][1];
+  }
+  // Add check-ins for this sport
+  for(var j=0;j<STATE.checkins.length;j++){
+    var c=STATE.checkins[j];
+    if(!c.post)continue;
+    // Detect sport from plan
+    var names=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    var dt=new Date(c.date+'T12:00');
+    var dayName=names[dt.getDay()];
+    var csport='Laufen';
+    var plan=STATE.weekStore[1]; // check week 1 plan
+    if(plan&&plan.days){
+      for(var k=0;k<plan.days.length;k++){
+        if(plan.days[k].day===dayName){csport=plan.days[k].sport;break}
+      }
+    }
+    if(csport!==sport)continue; // skip other sports
+    var realTSS=parseInt(c.post.tss)||0;
+    var tss=realTSS>0?realTSS:calcTSS(c.post,csport);
+    if(tss>0)map[c.date]=tss; // replace historical with real data
+  }
+  return map;
+}
+
+function calcFitnessMetrics(sport){
+  var tssMap=buildTSSMap(sport||'Laufen');
+  var dates=[];
+  for(var d in tssMap){dates.push(d)}
+  dates.sort();
+  if(dates.length===0)return null;
+  var ctlDecay=1-Math.exp(-1/42),atlDecay=1-Math.exp(-1/7);
+  var ctl=0,atl=0,history=[];
+  var current=new Date(dates[0]);
+  var today=new Date();today.setHours(0,0,0,0);
+  while(current<=today){
+    var ds=current.toISOString().slice(0,10);
+    var tss=tssMap[ds]||0;
+    ctl=ctl+ctlDecay*(tss-ctl);
+    atl=atl+atlDecay*(tss-atl);
+    history.push({date:ds,tss:tss,ctl:Math.round(ctl),atl:Math.round(atl),tsb:Math.round(ctl-atl)});
+    current.setDate(current.getDate()+1);
+  }
+  return history;
+}
+
+// ── Check-in ───────────────────────────────────────────────────────────────
+var CI={step:'morning',morning:{},post:{},todayPlan:null,feedback:null};
+
+function openCheckin(){
+  var plan=STATE.weekStore[STATE.weekNum];
+  var tp=plan&&plan.days?plan.days.find(function(d){return d.day===dayName()}):null;
+  CI={step:'morning',morning:{},post:{},todayPlan:tp,feedback:null};
+  renderCheckin();
+}
+
+function openManualLog(){
+  var sports=['Laufen','Rad','Gym'];
+  var plan=STATE.weekStore[STATE.weekNum];
+  var tp=plan&&plan.days?plan.days.find(function(d){return d.day===dayName()}):null;
+  var existing=STATE.checkins.find(function(c){return c.date===todayStr()});
+  CI={step:'sport-picker',morning:existing?existing.morning:{},post:existing&&existing.post?existing.post:{},todayPlan:tp,feedback:null};
+  var html='<div style="font-size:18px;font-weight:700;color:#f1f5f9;margin-bottom:16px">Welches Training?</div><div style="display:flex;gap:10px;margin-bottom:16px">';
+  sports.forEach(function(s){html+='<button onclick="setManualSport(\''+s+'\')" style="flex:1;padding:16px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#f1f5f9;font-size:13px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px"><span style="font-size:28px">'+SPORT_ICONS[s]+'</span><span>'+s+'</span></button>'});
+  html+='</div><button class="btn btn-ghost" onclick="closeCheckin()">Abbrechen</button>';
+  showModal(html);
+}
+
+function setManualSport(sport){CI.todayPlan={sport:sport,title:sport};CI.step='post';renderCheckin()}
+function closeCheckin(){document.getElementById('checkin-modal').style.display='none';render()}
+
+function renderCheckin(){
+  var html='';
+  if(CI.step==='feedback'&&CI.feedback){
+    html='<div style="text-align:center;margin-bottom:20px">';
+    html+='<div style="font-size:52px;margin-bottom:10px">'+CI.feedback.emoji+'</div>';
+    html+='<div style="font-size:18px;font-weight:700;color:#f1f5f9;margin-bottom:10px">Coach-Feedback</div>';
+    html+='<div style="font-size:14px;color:#94a3b8;line-height:1.6">'+CI.feedback.feedback+'</div>';
+    if(CI.feedback.tip)html+='<div style="margin-top:12px;padding:10px 14px;background:rgba(56,189,248,0.08);border-radius:10px;font-size:13px;color:#38bdf8">&#128161; '+CI.feedback.tip+'</div>';
+    html+='</div><button class="btn btn-primary" onclick="closeCheckin()">Fertig</button>';
+  } else if(CI.step==='morning'){
+    html='<div style="font-size:18px;font-weight:700;color:#f1f5f9;margin-bottom:4px">Guten Morgen &#9728;&#65039;</div>';
+    html+='<div style="font-size:13px;color:#64748b;margin-bottom:18px">Wie startest du in den Tag?</div>';
+    html+='<div class="section-title">Allgemeines Gefuehl</div><div class="score-row">'+buildScoreRow('feeling-m',CI.morning.feeling)+'</div>';
+    html+='<div class="section-title">Beine</div><div class="score-row">'+buildScoreRow('legs-m',CI.morning.legs)+'</div>';
+    html+='<div class="section-title">Schlaf</div><div class="score-row">'+buildScoreRow('sleep-m',CI.morning.sleep)+'</div>';
+    html+='<textarea class="input" id="morning-note" placeholder="Notiz (optional)..." style="margin-bottom:16px">'+(CI.morning.note||'')+'</textarea>';
+    html+='<div style="display:flex;gap:10px">';
+    html+='<button class="btn btn-ghost" style="flex:1" onclick="closeCheckin()">Ueberspringen</button>';
+    html+='<button class="btn btn-primary" style="flex:2" '+(CI.morning.feeling?'':'disabled')+' onclick="saveMorning()">'+((CI.todayPlan&&CI.todayPlan.sport!=='Rest')?'Weiter &#8594; Training':'Speichern')+'</button>';
+    html+='</div>';
+  } else {
+    var sport=CI.todayPlan?CI.todayPlan.sport:'Laufen';
+    var isRun=sport==='Laufen',isBike=sport==='Rad';
+    html='<div style="font-size:18px;font-weight:700;color:#f1f5f9;margin-bottom:4px">'+SPORT_ICONS[sport]+' Wie war das Training?</div>';
+    html+='<div style="font-size:13px;color:#64748b;margin-bottom:18px">'+(CI.todayPlan?CI.todayPlan.title:sport)+'</div>';
+    html+='<div class="section-title">Wetter</div><div style="display:flex;gap:6px;margin-bottom:12px">';
+    ['&#9728;&#65039; Warm','&#127780; Mild','&#127783; Regen','&#10052;&#65039; Kalt','&#128168; Windig'].forEach(function(w){
+      var sel=CI.post.weather===w;
+      html+='<button onclick="setWeather(\''+w+'\')" style="flex:1;padding:7px 2px;border-radius:9px;border:1.5px solid '+(sel?'#38bdf8':'rgba(255,255,255,0.08)')+';background:'+(sel?'rgba(56,189,248,0.15)':'rgba(255,255,255,0.03)')+';color:'+(sel?'#38bdf8':'#64748b')+';font-size:10px;cursor:pointer;font-family:inherit;text-align:center">'+w+'</button>';
+    });
+    html+='</div>';
+    html+='<div class="section-title">Gefuehl</div><div class="score-row">'+buildScoreRow('feeling-p',CI.post.feeling)+'</div>';
+    html+='<div class="section-title">Garmin-Daten</div><div class="garmin-grid">';
+    html+=garminBox('DISTANZ','g-distance','number','0.0','km',CI.post.distance||'');
+    html+=garminBox('ZEIT','g-duration','text','0:00:00','h:mm:ss',CI.post.duration||'');
+    if(isRun)html+=garminBox('PACE SCHNITT','g-pace','text','8:33','min/km',CI.post.pace||'');
+    if(isBike)html+=garminBox('GESCHW.','g-pace','text','25.0','km/h',CI.post.pace||'');
+    html+=garminBox('HF SCHNITT','g-avghr','number','145','bpm',CI.post.avgHr||'');
+    html+=garminBox('HF MAX','g-maxhr','number','172','bpm',CI.post.maxHr||'');
+    if(isRun)html+=garminBox('KADENZ','g-cadence','number','175','spm',CI.post.cadence||'');
+    html+=garminBox('HOEHENMETER','g-elevation','number','0','m',CI.post.elevation||'');
+    html+=garminBox('TSS (Garmin)','g-tss','number','0','TSS',CI.post.tss||'');
+    html+='</div>';
+    html+='<div class="section-title">Schmerzen / Beschwerden</div>';
+    html+='<input class="input" id="g-injury" placeholder="z.B. Wade links - oder leer lassen" style="margin-bottom:12px" value="'+(CI.post.injury||'')+'"">';
+    html+='<div class="section-title">Notiz</div>';
+    html+='<textarea class="input" id="g-note" placeholder="Wie hat es sich angefuehlt?" style="margin-bottom:16px">'+(CI.post.note||'')+'</textarea>';
+    html+='<div id="ci-error" style="color:#f43f5e;font-size:12px;margin-bottom:8px;display:none"></div>';
+    html+='<div style="display:flex;gap:10px">';
+    html+='<button class="btn btn-ghost" style="flex:1" onclick="closeCheckin()">Ueberspringen</button>';
+    html+='<button class="btn btn-primary" style="flex:2" id="post-btn" '+(CI.post.feeling?'':'disabled')+' onclick="savePost()">Coach-Feedback</button>';
+    html+='</div>';
+  }
+  showModal(html);
+}
+
+function garminBox(label,id,type,placeholder,unit,val){
+  return '<div class="garmin-box"><div class="garmin-label">'+label+'</div><input class="garmin-input" id="'+id+'" type="'+type+'" placeholder="'+placeholder+'" value="'+val+'"><div class="garmin-unit">'+unit+'</div></div>';
+}
+
+function buildScoreRow(key,selected){
+  var labels=['Kaputt','Muede','Ok','Gut','Top'];
+  var emojis=['&#x1F480;','&#x1F625;','&#x1F610;','&#x1F60A;','&#x1F525;'];
+  var html='';
+  for(var i=0;i<5;i++){
+    var sel=selected===i+1;
+    html+='<button class="score-btn" style="'+(sel?'background:'+FEELING_COLORS[i]+'22;border-color:'+FEELING_COLORS[i]+';color:'+FEELING_COLORS[i]:'')+'" onclick="setScore(\''+key+'\','+(i+1)+')">'+emojis[i]+' '+labels[i]+'</button>';
+  }
+  return html;
+}
+
+function showModal(html){
+  document.getElementById('checkin-inner').innerHTML=html;
+  document.getElementById('checkin-modal').style.display='flex';
+}
+
+function setScore(key,val){
+  if(key==='feeling-m')CI.morning.feeling=val;
+  else if(key==='legs-m')CI.morning.legs=val;
+  else if(key==='sleep-m')CI.morning.sleep=val;
+  else if(key==='feeling-p')CI.post.feeling=val;
+  renderCheckin();
+}
+function setWeather(w){CI.post.weather=CI.post.weather===w?'':w;renderCheckin()}
+
+function saveMorning(){
+  CI.morning.note=document.getElementById('morning-note').value||'';
+  if(CI.todayPlan&&CI.todayPlan.sport!=='Rest'){CI.step='post';renderCheckin()}
+  else{saveCheckinData();closeCheckin()}
+}
+
+function savePost(){
+  var btn=document.getElementById('post-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='KI analysiert...'}
+  CI.post.distance=document.getElementById('g-distance').value||'';
+  CI.post.duration=document.getElementById('g-duration').value||'';
+  CI.post.pace=document.getElementById('g-pace')?document.getElementById('g-pace').value||'':'';
+  CI.post.avgHr=document.getElementById('g-avghr').value||'';
+  CI.post.maxHr=document.getElementById('g-maxhr').value||'';
+  CI.post.cadence=document.getElementById('g-cadence')?document.getElementById('g-cadence').value||'':'';
+  CI.post.elevation=document.getElementById('g-elevation').value||'';
+  CI.post.tss=document.getElementById('g-tss')?document.getElementById('g-tss').value||'':'';
+  CI.post.injury=document.getElementById('g-injury').value||'';
+  CI.post.note=document.getElementById('g-note').value||'';
+  saveCheckinData();
+  CI.feedback=getLocalFeedback();
+  CI.step='feedback';
+  renderCheckin();
+}
+
+function saveCheckinData(){
+  var today=todayStr();
+  STATE.checkins=STATE.checkins.filter(function(c){return c.date!==today});
+  STATE.checkins.push({date:today,morning:Object.assign({},CI.morning),post:CI.post.feeling?Object.assign({},CI.post):null});
+  saveData();render();
+}
+
+function getLocalFeedback(){
+  var feeling=parseInt(CI.post.feeling)||3;
+  var pace=parseFloat((CI.post.pace||'').replace(',','.'))||0;
+  var avgHr=parseInt(CI.post.avgHr)||0;
+  var sport=CI.todayPlan?CI.todayPlan.sport:'Laufen';
+  var hasInjury=CI.post.injury&&CI.post.injury.toLowerCase()!=='keine'&&CI.post.injury.trim()!=='';
+  var emoji=FEELING_EMOJIS[feeling-1]||'&#x1F610;';
+  var feedback,tip;
+  if(sport==='Laufen'){
+    var inZ2=pace>=8.33&&pace<=9.49,hrZ2=avgHr>=130&&avgHr<=148,hrHigh=avgHr>155;
+    if(feeling>=4&&inZ2&&hrZ2){feedback='Sehr solider Lauf! Pace und HF beide in Zone 2. Genau so soll 80/20 aussehen.';tip='Diese Basis zahlt sich beim HM Hamburg aus.';emoji='&#x1F3AF;'}
+    else if(hrHigh){feedback='HF war etwas hoch fuer Zone 2. Hitze, Muedigkeit oder Gelaende koennen das erklaeren.';tip='Beim naechsten Easy Run noch mehr auf HF achten. Notfalls gehen.';emoji='&#x1F4CA;'}
+    else if(feeling<=2){feedback='Nicht der beste Tag - aber du bist raus, das zaehlt.';tip='Ein schlechter Lauf ist besser als kein Lauf.';emoji='&#x1F4AA;'}
+    else{feedback='Solide Einheit.'+(CI.post.distance?' '+CI.post.distance+'km':'')+'. '+(feeling>=3?'Gefuehl war gut.':'Koerper brauchte mehr heute.');tip='Schoen locker bleiben.'}
+    if(hasInjury){feedback+=' Wegen '+CI.post.injury+': beobachten ob es besser oder schlechter wird.';tip='Bei anhaltenden Schmerzen einen Tag mehr Pause einplanen.';emoji='&#x26A0;&#xFE0F;'}
+  } else if(sport==='Rad'){
+    feedback='Radeinheit abgehakt.'+(avgHr?' HF '+avgHr+' bpm.':'')+(feeling>=4?' Beine haben gut mitgemacht.':'');
+    tip='Rad ist perfekte aktive Recovery fuer die Laufbeine.';emoji='&#x1F6B4;&#x200D;&#x2640;&#xFE0F;';
+  } else {
+    feedback='Gym-Einheit erledigt. '+(feeling>=4?'Gutes Kraftgefuehl.':'Nicht jede Session muss perfekt sein.');
+    tip='Einbeinige Uebungen besonders wichtig fuer Laufstabilitaet.';emoji='&#x1F3CB;&#x200D;&#x2640;&#xFE0F;';
+  }
+  return{feedback:feedback,emoji:emoji,tip:tip};
+}
+
+// ── Race Checklist ─────────────────────────────────────────────────────────
+function openRaceChecklist(){
+  var items=[
+    {cat:'Abend vorher',checks:['Rad gecheckt (Reifen, Bremsen, Schaltung)','Ausruestung vorbereitet (Helm, Schuhe, Trikot)','Nummernschild befestigt','Verpflegung vorbereitet (Gels, Riegel, Trinkflasche)','Fruehzeitig schlafen gehen']},
+    {cat:'Renntag Morgen',checks:['Fruehstueck 2-3h vor Start','Ausreichend trinken','Eincremen (Chamois Cream)','Aufwaermen 15-20 min','Startnummer ueberpruefen']},
+    {cat:'Rennstrategie',checks:['Erste 30km defensiv fahren','Alle 45 min essen','Alle 20 min trinken','HF unter 176 bpm halten (Zone 3-4)','Nach 60km kann es wehtun - das ist normal']}
+  ];
+  var html='<div style="font-size:18px;font-weight:700;color:#f1f5f9;margin-bottom:4px">&#x1F3C1; HM Hamburg Race-Checkliste</div>';
+  html+='<div style="font-size:13px;color:#64748b;margin-bottom:16px">Race-Checkliste Sonntag</div>';
+  items.forEach(function(cat){
+    html+='<div style="font-size:11px;color:#38bdf8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;margin-top:12px">'+cat.cat+'</div>';
+    cat.checks.forEach(function(item){
+      html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">';
+      html+='<div style="width:20px;height:20px;border:1.5px solid rgba(56,189,248,0.4);border-radius:5px;flex-shrink:0;margin-top:1px"></div>';
+      html+='<span style="font-size:13px;color:#94a3b8">'+item+'</span></div>';
+    });
+  });
+  html+='<button class="btn btn-primary" style="margin-top:20px" onclick="closeCheckin()">Fertig</button>';
+  showModal(html);
+}
+
+// ── Rendering ──────────────────────────────────────────────────────────────
+function setTab(tab){
+  STATE.tab=tab;
+  ['dashboard','plan','history','form','zones'].forEach(function(t){
+    var btn=document.getElementById('tab-'+t);
+    if(btn){btn.className=t===tab?'tab active':'tab inactive'}
+  });
+  var titles={dashboard:'Dashboard',plan:'Woche '+STATE.weekNum,history:'Verlauf',form:'Form & Fitness',zones:'Zonen'};
+  document.getElementById('header-title').textContent=titles[tab]||tab;
+  document.getElementById('week-nav').style.display=tab==='plan'?'flex':'none';
+  render();
+}
+
+function toggleSettings(){
+  STATE.showSettings=!STATE.showSettings;
+  document.getElementById('settings-panel').style.display=STATE.showSettings?'block':'none';
+  var btn=document.getElementById('settings-btn');
+  btn.style.background=STATE.showSettings?'rgba(56,189,248,0.15)':'rgba(255,255,255,0.06)';
+  btn.style.color=STATE.showSettings?'#38bdf8':'#94a3b8';
+  if(STATE.showSettings){
+    document.getElementById('cloud-key-input').value=getCloudKey();
+    document.getElementById('cloud-bin-input').value=getCloudBin();
+  }
+}
+
+function changeWeek(dir){
+  STATE.weekNum=Math.max(1,STATE.weekNum+dir);
+  document.getElementById('week-num').textContent=STATE.weekNum;
+  document.getElementById('header-title').textContent='Woche '+STATE.weekNum;
+  render();
+}
+
+function render(){
+  var screen=document.getElementById('screen');
+  if(!screen)return;
+  var html='';
+  try{
+    if(STATE.tab==='dashboard')html=renderDashboard();
+    else if(STATE.tab==='plan')html=renderPlan();
+    else if(STATE.tab==='history')html=renderHistory();
+    else if(STATE.tab==='form')html=renderForm();
+    else if(STATE.tab==='zones')html=renderZones();
+  }catch(e){html='<div style="padding:20px;color:#f43f5e">Fehler: '+e.message+'</div>'}
+  screen.innerHTML=html;
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+function renderDashboard(){
+  var today=todayStr();
+  var todayCI=STATE.checkins.find(function(c){return c.date===today});
+  var plan=STATE.weekStore[STATE.weekNum];
+  var todayPlan=plan&&plan.days?plan.days.find(function(d){return d.day===dayName()}):null;
+  var recent=[].concat(STATE.checkins).sort(function(a,b){return b.date.localeCompare(a.date)}).slice(0,7);
+  var avgFeeling=recent.length>0?(recent.reduce(function(s,c){return s+(c.morning&&c.morning.feeling?c.morning.feeling:0)},0)/recent.length).toFixed(1):null;
+  var hasPost=todayCI&&todayCI.post&&todayCI.post.feeling;
+
+  var html='<div style="padding-top:16px">';
+
+  // Events
+  html+='<div class="section-title">Naechste Events</div><div class="scroll-row">';
+  EVENTS.forEach(function(ev){
+    var days=daysUntil(ev.date);
+    if(days<0)return;
+    var urgent=days<=7;
+    html+='<div class="event-chip'+(urgent?' urgent':'')+'"><div style="font-size:22px;margin-bottom:4px">'+ev.icon+'</div>';
+    html+='<div style="font-size:11px;font-weight:600;color:#f1f5f9;margin-bottom:2px">'+ev.label+'</div>';
+    html+='<div style="font-size:12px;color:'+(urgent?'#fb923c':'#64748b')+'">'+( days===0?'Heute!':days===1?'Morgen!':'in '+days+' Tagen')+'</div></div>';
+  });
+  html+='</div>';
+
+  // HM Hamburg Pace Calculator
+  var hmDays=daysUntil('2026-06-28');
+  if(hmDays>0&&hmDays<=30){
+    html+='<div style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.2);border-radius:12px;padding:12px 14px;margin-bottom:16px">';
+    html+='<div style="font-size:12px;font-weight:600;color:#38bdf8;margin-bottom:6px">&#x1F3C1; Hamburg HM &middot; Ziel 2:15h</div>';
+    html+='<div style="display:flex;gap:12px;flex-wrap:wrap">';
+    html+='<div style="font-size:13px;color:#94a3b8">Zielpace: <span style="color:#f1f5f9;font-weight:600">6:24 min/km</span></div>';
+    html+='<div style="font-size:13px;color:#94a3b8">5km-Split: <span style="color:#f1f5f9;font-weight:600">32:00</span></div>';
+    html+='<div style="font-size:13px;color:#94a3b8">10km-Split: <span style="color:#f1f5f9;font-weight:600">64:00</span></div>';
+    html+='</div>';
+    html+='<div style="font-size:11px;color:#475569;margin-top:6px">Strategie: erste 5km bei 6:30-6:35, dann einpegeln</div>';
+    html+='</div>';
+  }
+  var tenkmDays=daysUntil('2026-09-20');
+  if(hmDays<0&&tenkmDays>0){
+    html+='<div style="background:rgba(251,146,60,0.06);border:1px solid rgba(251,146,60,0.2);border-radius:12px;padding:12px 14px;margin-bottom:16px">';
+    html+='<div style="font-size:12px;font-weight:600;color:#fb923c;margin-bottom:6px">&#x1F3AF; 10km Ziel &middot; 58:00 min</div>';
+    html+='<div style="display:flex;gap:12px;flex-wrap:wrap">';
+    html+='<div style="font-size:13px;color:#94a3b8">Zielpace: <span style="color:#f1f5f9;font-weight:600">5:48 min/km</span></div>';
+    html+='<div style="font-size:13px;color:#94a3b8">PB: <span style="color:#f1f5f9;font-weight:600">1:01:00 (6:06/km)</span></div>';
+    html+='<div style="font-size:13px;color:#94a3b8">Verbesserung: <span style="color:#4ade80;font-weight:600">-3:00 min</span></div>';
+    html+='</div>';
+    html+='<div style="font-size:11px;color:#475569;margin-top:6px">in '+tenkmDays+' Tagen &middot; 12 Wochen Aufbau ab Juli</div>';
+    html+='</div>';
+  }
+
+  // Today
+  html+='<div class="section-title">Heute &middot; '+new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+'</div>';
+  if(todayPlan){
+    var tc=SPORT_COLORS[todayPlan.sport]||'#1e293b';
+    html+='<div class="card" style="border-color:'+tc+'33"><div style="display:flex;gap:12px;align-items:flex-start">';
+    html+='<div style="font-size:30px">'+SPORT_ICONS[todayPlan.sport]+'</div>';
+    html+='<div style="flex:1"><div style="font-size:15px;font-weight:600;color:#f1f5f9">'+todayPlan.title+'</div>';
+    html+='<div style="font-size:12px;color:'+tc+';margin-top:2px">'+todayPlan.zones+(todayPlan.duration?' &middot; '+todayPlan.duration:'')+'</div>';
+    html+='<div style="font-size:12px;color:#64748b;margin-top:4px;line-height:1.5">'+todayPlan.description+'</div></div></div></div>';
+  } else {
+    html+='<div class="card"><div style="color:#475569;font-size:13px">Noch kein Plan - geh zum Woche-Tab.</div></div>';
+  }
+
+  // Buttons
+  var ciBg=todayCI?'rgba(74,222,128,0.1)':'rgba(56,189,248,0.12)';
+  var ciColor=todayCI?'#4ade80':'#38bdf8';
+  var ciLabel=todayCI?('&#10003; Check-in: '+FEELING_EMOJIS[(todayCI.morning&&todayCI.morning.feeling?todayCI.morning.feeling:3)-1]+' '+(FEELING_LABELS[(todayCI.morning&&todayCI.morning.feeling?todayCI.morning.feeling:3)-1]||'')):'&#128203; Tages Check-in starten';
+  html+='<button onclick="openCheckin()" style="width:100%;padding:14px;background:'+ciBg+';border:1px solid '+ciColor+'4d;border-radius:12px;color:'+ciColor+';font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px">'+ciLabel+'</button>';
+
+  var postBg=hasPost?'rgba(74,222,128,0.07)':'rgba(251,146,60,0.08)';
+  var postColor=hasPost?'#4ade80':'#fb923c';
+  var postLabel=hasPost?'&#10003; Training heute eingetragen':'&#10133; Training manuell eintragen';
+  if(hmDays>=0&&hmDays<=3){
+    html+='<button onclick="openRaceChecklist()" style="width:100%;padding:12px;background:rgba(248,56,56,0.1);border:1px solid rgba(248,56,56,0.3);border-radius:12px;color:#f87171;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px">&#x1F3C1; Race-Checkliste oeffnen</button>';
+  }
+  html+='<button onclick="openManualLog()" style="width:100%;padding:12px;background:'+postBg+';border:1px solid '+postColor+'33;border-radius:12px;color:'+postColor+';font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:16px">'+postLabel+'</button>';
+
+  // Stats
+  if(avgFeeling){
+    html+='<div style="display:flex;gap:8px;margin-bottom:16px">';
+    html+='<div class="stat-box"><div style="font-size:20px;font-weight:700;color:#38bdf8">'+avgFeeling+'</div><div style="font-size:10px;color:#475569;margin-top:2px">&#216; Gefuehl</div></div>';
+    html+='<div class="stat-box"><div style="font-size:20px;font-weight:700;color:#4ade80">'+recent.length+'</div><div style="font-size:10px;color:#475569;margin-top:2px">Check-ins</div></div>';
+    html+='<div class="stat-box"><div style="font-size:20px;font-weight:700;color:#fb923c">'+STATE.weekNum+'</div><div style="font-size:10px;color:#475569;margin-top:2px">Woche</div></div>';
+    html+='</div>';
+  }
+
+  // Recent log
+  if(recent.length>0){
+    html+='<div class="section-title">Verlauf</div>';
+    recent.forEach(function(c){
+      var fi=(c.morning&&c.morning.feeling?c.morning.feeling:3)-1;
+      html+='<div class="log-entry"><div style="font-size:22px">'+FEELING_EMOJIS[fi]+'</div>';
+      html+='<div style="flex:1"><div style="font-size:12px;color:#94a3b8">'+new Date(c.date+'T12:00').toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'})+'</div>';
+      if(c.post){html+='<div style="font-size:11px;color:#475569">'+(c.post.distance?c.post.distance+'km &middot; ':'')+(c.post.pace?c.post.pace+' &middot; ':'')+(c.post.avgHr?c.post.avgHr+' bpm':'')+'</div>'}
+      if(c.post&&c.post.weather)html+='<div style="font-size:11px;color:#64748b">'+c.post.weather+'</div>';
+      if(c.post&&c.post.injury)html+='<div style="font-size:11px;color:#fb923c">&#9888; '+c.post.injury+'</div>';
+      html+='</div></div>';
+    });
+  }
+  html+='</div>';
+  return html;
+}
+
+// ── Plan Tab ───────────────────────────────────────────────────────────────
+function renderPlan(){
+  var plan=STATE.weekStore[STATE.weekNum];
+  var logged=STATE.logStore[STATE.weekNum]||{};
+  var html='<div style="padding-top:16px">';
+
+  if(!plan){
+    html+='<div class="empty-state"><div style="font-size:52px;margin-bottom:16px">&#128197;</div>';
+    html+='<div style="font-size:16px;color:#94a3b8;margin-bottom:8px">Noch kein Plan fuer Woche '+STATE.weekNum+'</div>';
+    html+='<div style="font-size:13px;margin-bottom:24px">KI generiert deinen 80/20-Plan</div>';
+    var btnLabels={1:'&#128203; Trainerwoche 1',2:'&#128203; Trainerwoche 2',3:'&#128203; Pre-HM Woche',4:'&#x1F3C1; Post-HM Erholung',5:'&#x1F331; Wiedereinstieg'};
+    var btnColors={1:'#fb923c',2:'#38bdf8',3:'#a78bfa',4:'#4ade80',5:'#4ade80'};
+    if(STATE.weekNum<=5){
+      html+='<button class="btn" style="max-width:280px;margin:0 auto;display:block;background:'+(btnColors[STATE.weekNum]||'#38bdf8')+';color:#080f1a" onclick="handleGenerate()">'+(btnLabels[STATE.weekNum]||'Plan laden')+'</button>';
+    } else {
+      html+='<button class="btn btn-primary" style="max-width:240px;margin:0 auto;display:block" onclick="handleGenerate()">Plan generieren</button>';
+    }
+    html+='</div>';
+    return html;
+  }
+
+  var total=plan.days.filter(function(d){return d.sport!=='Rest'}).length;
+  var done=plan.days.filter(function(d){return d.sport!=='Rest'&&logged[d.day]}).length;
+  var easyDone=plan.days.filter(function(d){return d.intensity==='easy'&&logged[d.day]}).length;
+  var hardDone=plan.days.filter(function(d){return(d.intensity==='moderate'||d.intensity==='hard')&&logged[d.day]}).length;
+  var td=easyDone+hardDone,easyPct=td>0?Math.round(easyDone/td*100):80;
+  var loadColors={leicht:'#4ade80',mittel:'#fb923c',hoch:'#f43f5e'};
+  var lc=loadColors[plan.weeklyLoad]||'#64748b';
+
+  // Week focus card
+  html+='<div style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.15);border-radius:12px;padding:12px 14px;margin-bottom:14px">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+  html+='<span style="font-size:12px;font-weight:600;color:#38bdf8">'+plan.weekFocus+'</span>';
+  if(plan.weeklyLoad)html+='<span class="tag" style="color:'+lc+';background:'+lc+'18">'+plan.weeklyLoad+'</span>';
+  html+='</div>';
+  if(plan.coachNote)html+='<div style="font-size:12px;color:#64748b;font-style:italic">&#128172; '+plan.coachNote+'</div>';
+  html+='</div>';
+
+  // Progress bars
+  html+='<div style="display:flex;gap:8px;margin-bottom:14px">';
+  html+='<div style="flex:1;background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 12px;border:1px solid rgba(255,255,255,0.06)">';
+  html+='<div style="font-size:11px;color:#475569;margin-bottom:3px">Erledigt</div>';
+  html+='<div style="font-size:18px;font-weight:700;color:#f1f5f9">'+done+'<span style="font-size:12px;color:#475569">/'+total+'</span></div>';
+  html+='<div class="progress-bar"><div class="progress-fill" style="width:'+(total>0?Math.round(done/total*100):0)+'%;background:#38bdf8"></div></div></div>';
+  html+='<div style="flex:1;background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 12px;border:1px solid rgba(255,255,255,0.06)">';
+  html+='<div style="font-size:11px;color:#475569;margin-bottom:3px">80/20 Balance</div>';
+  html+='<div style="font-size:18px;font-weight:700;color:'+(easyPct>=75?'#4ade80':'#fb923c')+'">'+easyPct+'<span style="font-size:12px;color:#475569">% easy</span></div>';
+  html+='<div class="progress-bar"><div class="progress-fill" style="width:'+easyPct+'%;background:'+(easyPct>=75?'#4ade80':'#fb923c')+'"></div></div></div>';
+  html+='</div>';
+
+  // Day cards
+  plan.days.forEach(function(d){
+    var color=SPORT_COLORS[d.sport]||'#334155';
+    var isLogged=!!logged[d.day];
+    var dotColor={easy:'#4ade80',moderate:'#fb923c',hard:'#f43f5e'}[d.intensity]||'';
+    html+='<div class="day-card'+(isLogged?' done':'')+'"><div style="display:flex;gap:10px;align-items:flex-start">';
+    html+='<div style="width:38px;height:38px;border-radius:9px;background:'+color+'18;border:1px solid '+color+'33;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+SPORT_ICONS[d.sport]+'</div>';
+    html+='<div style="flex:1"><div style="display:flex;justify-content:space-between;align-items:center">';
+    html+='<span style="font-size:11px;color:#475569">'+d.day+'</span>';
+    html+='<div style="display:flex;gap:6px;align-items:center">';
+    if(d.duration)html+='<span style="font-size:11px;color:#64748b">'+d.duration+'</span>';
+    if(dotColor&&d.sport!=='Rest')html+='<div style="width:7px;height:7px;border-radius:50%;background:'+dotColor+'"></div>';
+    html+='</div></div>';
+    html+='<div style="font-size:14px;font-weight:600;color:#f1f5f9;margin:2px 0">'+d.title+'</div>';
+    if(d.zones)html+='<div style="font-size:11px;color:'+color+';margin-bottom:3px">'+d.zones+'</div>';
+    html+='<div style="font-size:12px;color:#64748b;line-height:1.5">'+d.description+'</div>';
+    html+='</div></div>';
+    if(d.sport!=='Rest'){
+      html+='<button onclick="toggleLog(\''+d.day+'\')" style="margin-top:8px;width:100%;padding:7px;background:'+(isLogged?'rgba(74,222,128,0.1)':'rgba(255,255,255,0.03)')+';border:1px solid '+(isLogged?'#4ade8033':'rgba(255,255,255,0.08)')+';border-radius:8px;color:'+(isLogged?'#4ade80':'#475569')+';font-size:12px;cursor:pointer;font-family:inherit">'+(isLogged?'&#10003; Erledigt':'Als erledigt markieren')+'</button>';
+    }
+    html+='</div>';
+  });
+
+  html+='<div style="display:flex;gap:8px;margin-top:8px">';
+  if(STATE.weekNum===1)html+='<button onclick="loadTrainerWeek()" style="flex:1;padding:11px;background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.2);border-radius:10px;color:#fb923c;font-size:12px;cursor:pointer;font-family:inherit">&#128203; Trainerwoche</button>';
+  html+='<button onclick="handleGenerate()" style="flex:1;padding:11px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;color:#475569;font-size:12px;cursor:pointer;font-family:inherit">&#8635; Neu generieren</button>';
+  html+='</div></div>';
+  return html;
+}
+
+// ── History Tab ────────────────────────────────────────────────────────────
+function getWeeklyVolume(){
+  var runKm=0,bikeKm=0;
+  STATE.checkins.forEach(function(c){
+    if(!c.post||!c.post.distance)return;
+    var km=parseFloat(c.post.distance)||0;
+    // Determine sport from date
+    var names=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    var plan=STATE.weekStore[STATE.weekNum];
+    var dt=new Date(c.date+'T12:00');
+    var sport='Laufen';
+    if(plan&&plan.days){var found=plan.days.find(function(d){return d.day===names[dt.getDay()]});if(found)sport=found.sport}
+    if(sport==='Laufen')runKm+=km;
+    else if(sport==='Rad')bikeKm+=km;
+  });
+  return{run:runKm.toFixed(1),bike:bikeKm.toFixed(1)};
+}
+
+function renderHistory(){
+  var html='<div style="padding-top:16px">';
+  if(STATE.checkins.length===0&&Object.keys(STATE.weekStore).length===0){
+    return html+'<div class="empty-state"><div style="font-size:52px;margin-bottom:12px">&#128202;</div><div>Noch keine Daten.</div></div></div>';
+  }
+  var sorted=[].concat(STATE.checkins).sort(function(a,b){return b.date.localeCompare(a.date)});
+  var injuries=STATE.checkins.filter(function(c){return c.post&&c.post.injury&&c.post.injury.toLowerCase()!=='keine'&&c.post.injury.trim()!==''}).length;
+  var avg=STATE.checkins.length>0?(STATE.checkins.reduce(function(s,c){return s+(c.morning&&c.morning.feeling?c.morning.feeling:0)},0)/STATE.checkins.length).toFixed(1):'-';
+
+  // Week summaries
+  var weekNums=Object.keys(STATE.weekStore).map(Number).sort(function(a,b){return b-a});
+  if(weekNums.length>0){
+    html+='<div class="section-title">Wochenauswertung</div>';
+    weekNums.forEach(function(w){
+      var plan=STATE.weekStore[w],logs=STATE.logStore[w]||{};
+      if(!plan)return;
+      var tot=plan.days.filter(function(d){return d.sport!=='Rest'}).length;
+      var dn=plan.days.filter(function(d){return d.sport!=='Rest'&&logs[d.day]}).length;
+      var ep=plan.days.filter(function(d){return d.intensity==='easy'&&logs[d.day]}).length;
+      var hp=plan.days.filter(function(d){return(d.intensity==='moderate'||d.intensity==='hard')&&logs[d.day]}).length;
+      var td=ep+hp,easyP=td>0?Math.round(ep/td*100):null;
+      var cp=tot>0?Math.round(dn/tot*100):0;
+      var lc={leicht:'#4ade80',mittel:'#fb923c',hoch:'#f43f5e'}[plan.weeklyLoad]||'#64748b';
+      var verdict=cp>=80&&(easyP===null||easyP>=75)?'&#x1F49A; Sehr gute Woche':cp>=60?'&#x1F7E1; Solide Woche':'&#x26AA; Wenig Einheiten';
+      html+='<div style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.15);border-radius:14px;padding:14px 16px;margin-bottom:12px">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+      html+='<span style="font-size:14px;font-weight:700;color:#f1f5f9">Woche '+w+'</span>';
+      html+='<span class="tag" style="color:'+lc+';background:'+lc+'18">'+plan.weeklyLoad+'</span></div>';
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">';
+      html+='<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:9px;padding:8px 4px"><div style="font-size:18px;font-weight:700;color:'+(cp>=80?'#4ade80':'#fb923c')+'">'+cp+'%</div><div style="font-size:10px;color:#475569">Abgeschl.</div></div>';
+      html+='<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:9px;padding:8px 4px"><div style="font-size:18px;font-weight:700;color:'+(easyP===null||easyP>=75?'#4ade80':'#fb923c')+'">'+(easyP!==null?easyP+'%':'--')+'</div><div style="font-size:10px;color:#475569">Easy%</div></div>';
+      html+='<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:9px;padding:8px 4px"><div style="font-size:18px;font-weight:700;color:'+(injuries>0?'#fb923c':'#4ade80')+'">'+(injuries>0?injuries+'x':'✓')+'</div><div style="font-size:10px;color:#475569">Beschw.</div></div>';
+      html+='</div><div style="font-size:12px;color:#64748b;font-style:italic">'+verdict+'</div></div>';
+    });
+  }
+
+  html+='<div style="display:flex;gap:8px;margin-bottom:16px">';
+  html+='<div class="stat-box"><div style="font-size:20px;font-weight:700;color:#38bdf8">'+STATE.checkins.length+'</div><div style="font-size:10px;color:#475569;margin-top:2px">Check-ins</div></div>';
+  html+='<div class="stat-box"><div style="font-size:20px;font-weight:700;color:#4ade80">'+avg+'/5</div><div style="font-size:10px;color:#475569;margin-top:2px">&#216; Gefuehl</div></div>';
+  html+='<div class="stat-box"><div style="font-size:20px;font-weight:700;color:'+(injuries>0?'#fb923c':'#4ade80')+'">'+injuries+'</div><div style="font-size:10px;color:#475569;margin-top:2px">&#9888; Tage</div></div>';
+  html+='</div>';
+
+  if(sorted.length>0){
+    html+='<div class="section-title">Check-in Verlauf</div>';
+    sorted.forEach(function(c){
+      var fi=(c.morning&&c.morning.feeling?c.morning.feeling:3)-1;
+      html+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+      html+='<span style="font-size:13px;font-weight:600;color:#f1f5f9">'+new Date(c.date+'T12:00').toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+'</span>';
+      html+='<span style="font-size:22px">'+FEELING_EMOJIS[fi]+'</span></div>';
+      html+='<div style="display:flex;gap:12px;flex-wrap:wrap">';
+      if(c.morning&&c.morning.feeling)html+='<span style="font-size:12px;color:#64748b">Gefuehl: <span style="color:'+FEELING_COLORS[fi]+'">'+FEELING_EMOJIS[fi]+' '+FEELING_LABELS[fi]+'</span></span>';
+      if(c.morning&&c.morning.legs)html+='<span style="font-size:12px;color:#64748b">Beine: '+c.morning.legs+'/5</span>';
+      if(c.morning&&c.morning.sleep)html+='<span style="font-size:12px;color:#64748b">Schlaf: '+c.morning.sleep+'/5</span>';
+      html+='</div>';
+      if(c.post){
+        html+='<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06)">';
+        html+='<div style="font-size:11px;color:#38bdf8;margin-bottom:4px">TRAINING</div>';
+        html+='<div style="display:flex;gap:10px;flex-wrap:wrap">';
+        if(c.post.distance)html+='<span style="font-size:12px;color:#94a3b8">&#128205; '+c.post.distance+'km</span>';
+        if(c.post.duration)html+='<span style="font-size:12px;color:#94a3b8">&#9201; '+c.post.duration+'</span>';
+        if(c.post.pace)html+='<span style="font-size:12px;color:#94a3b8">&#9889; '+c.post.pace+'</span>';
+        if(c.post.avgHr)html+='<span style="font-size:12px;color:#94a3b8">&#10084; '+c.post.avgHr+'bpm</span>';
+        if(c.post.maxHr)html+='<span style="font-size:12px;color:#94a3b8">&#10084; '+c.post.maxHr+'bpm max</span>';
+        if(c.post.cadence)html+='<span style="font-size:12px;color:#94a3b8">&#128095; '+c.post.cadence+'spm</span>';
+        if(c.post.elevation)html+='<span style="font-size:12px;color:#94a3b8">&#9968; '+c.post.elevation+'m</span>';
+        html+='</div>';
+        if(c.post.weather)html+='<div style="font-size:12px;color:#64748b;margin-top:4px">'+c.post.weather+'</div>';
+        if(c.post.injury)html+='<div style="font-size:12px;color:#fb923c;margin-top:4px">&#9888; '+c.post.injury+'</div>';
+        if(c.post.note)html+='<div style="font-size:12px;color:#475569;margin-top:4px;font-style:italic">'+c.post.note+'</div>';
+        html+='</div>';
+      }
+      html+='</div>';
+    });
+  }
+  html+='</div>';
+  return html;
+}
+
+// ── Form Tab ───────────────────────────────────────────────────────────────
+function buildSportBlock(sportLabel, icon, history){
+  if(!history||history.length===0) return '';
+  var latest=history[history.length-1];
+  var ctl=latest.ctl,atl=latest.atl,tsb=latest.tsb;
+  var fl=ctl>0?Math.round(atl/ctl*100)/100:0;
+  var flStr=fl.toFixed(2);
+  var flColor,flIcon,flLabel,flDesc;
+  if(fl<0.8){flColor='#38bdf8';flIcon='&#11015;&#65039;';flLabel='Detraining';flDesc='Deutlich weniger Training als gewohnt.'}
+  else if(fl<1.0){flColor='#4ade80';flIcon='&#x1F6CF;&#xFE0F;';flLabel='Recovery';flDesc='Leichte Erholungsphase.'}
+  else if(fl<1.3){flColor='#4ade80';flIcon='&#x2705;';flLabel='Produktiv';flDesc='Sweet Spot! Fitness steigt optimal.'}
+  else if(fl<1.5){flColor='#fb923c';flIcon='&#x26A0;&#xFE0F;';flLabel='Overreaching';flDesc='Etwas zu viel - Erholung einplanen.'}
+  else{flColor='#f43f5e';flIcon='&#x1F6A8;';flLabel='Overtraining';flDesc='Ruhetag dringend empfohlen!'}
+  var tsbColor=tsb>=5?'#4ade80':tsb>=-10?'#facc15':tsb>=-20?'#fb923c':'#f43f5e';
+  var html='';
+  html+='<div style="font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:10px">'+icon+' '+sportLabel+'</div>';
+  // Fatigue level
+  html+='<div style="background:'+flColor+'15;border:1px solid '+flColor+'40;border-radius:12px;padding:12px 14px;margin-bottom:10px">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+  html+='<span style="font-size:12px;font-weight:700;color:'+flColor+'">'+flIcon+' '+flLabel+'</span>';
+  html+='<span style="font-size:24px;font-weight:800;color:'+flColor+'">'+flStr+'</span>';
+  html+='</div>';
+  html+='<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">'+flDesc+'</div>';
+  // Scale bar
+  html+='<div style="display:flex;height:5px;border-radius:8px;overflow:hidden;gap:1px">';
+  html+='<div style="flex:0.8;background:#38bdf8;opacity:0.5;border-radius:3px"></div>';
+  html+='<div style="flex:0.2;background:#4ade80;opacity:0.7;border-radius:3px"></div>';
+  html+='<div style="flex:0.3;background:#4ade80;border-radius:3px"></div>';
+  html+='<div style="flex:0.2;background:#fb923c;border-radius:3px"></div>';
+  html+='<div style="flex:0.5;background:#f43f5e;border-radius:3px"></div>';
+  html+='</div>';
+  html+='</div>';
+  // Stats row
+  html+='<div style="display:flex;gap:8px;margin-bottom:10px">';
+  html+='<div class="stat-box"><div style="font-size:18px;font-weight:700;color:#38bdf8">'+ctl+'</div><div style="font-size:9px;color:#475569;margin-top:1px">Fitness (CTL)</div></div>';
+  html+='<div class="stat-box"><div style="font-size:18px;font-weight:700;color:#fb923c">'+atl+'</div><div style="font-size:9px;color:#475569;margin-top:1px">Ermuedung (ATL)</div></div>';
+  html+='<div class="stat-box"><div style="font-size:18px;font-weight:700;color:'+tsbColor+'">'+(tsb>=0?'+':'')+tsb+'</div><div style="font-size:9px;color:#475569;margin-top:1px">Form (TSB)</div></div>';
+  html+='</div>';
+  return html;
+}
+
+function renderForm(){
+  var runHistory=calcFitnessMetrics('Laufen');
+  var bikeHistory=calcFitnessMetrics('Rad');
+  var html='<div style="padding-top:16px">';
+
+  // Sport blocks
+  html+=buildSportBlock('Laufen','&#x1F3C3;&#x200D;&#x2640;&#xFE0F;',runHistory);
+  html+='<div style="border-top:1px solid rgba(255,255,255,0.07);margin:4px 0 14px"></div>';
+  html+=buildSportBlock('Rad','&#x1F6B4;&#x200D;&#x2640;&#xFE0F;',bikeHistory);
+  html+='<div style="border-top:1px solid rgba(255,255,255,0.07);margin:4px 0 14px"></div>';
+
+  // Combined chart using all data
+  var history=calcFitnessMetrics(null);
+  if(!history||history.length===0){html+='</div>';return html;}
+  var chartData=history.slice(-30);
+  var maxVal=Math.max.apply(null,chartData.map(function(d){return Math.max(d.ctl,d.atl,Math.abs(d.tsb))}));
+  if(maxVal<1)maxVal=1;
+  var W=340,H=80;
+  var ctlPts=chartData.map(function(d,i){var x=(i/(chartData.length-1||1))*W,y=H-(d.ctl/maxVal)*H;return(i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)}).join(' ');
+  var atlPts=chartData.map(function(d,i){var x=(i/(chartData.length-1||1))*W,y=H-(d.atl/maxVal)*H;return(i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)}).join(' ');
+  var tsbPts=chartData.map(function(d,i){var x=(i/(chartData.length-1||1))*W,y=(H/2)-(d.tsb/maxVal)*(H/2);return(i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)}).join(' ');
+
+  var latest2=history[history.length-1];
+  var ctl=latest2.ctl,atl=latest2.atl,tsb=latest2.tsb;
+  html+='<div class="section-title">Verlauf Gesamt (30 Tage)</div>';
+  html+='<div class="card">';
+  html+='<svg width="100%" viewBox="0 0 '+W+' '+(H+4)+'" style="overflow:visible">';
+  html+='<line x1="0" y1="'+(H/2)+'" x2="'+W+'" y2="'+(H/2)+'" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="4"/>';
+  html+='<path d="'+ctlPts+'" fill="none" stroke="#38bdf8" stroke-width="2"/>';
+  html+='<path d="'+atlPts+'" fill="none" stroke="#fb923c" stroke-width="2"/>';
+  html+='<path d="'+tsbPts+'" fill="none" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="4"/>';
+  html+='</svg>';
+  html+='<div style="display:flex;gap:16px;margin-top:8px;justify-content:center">';
+  html+='<span style="font-size:11px;color:#38bdf8">&#8212; Fitness</span>';
+  html+='<span style="font-size:11px;color:#fb923c">&#8212; Ermuedung</span>';
+  html+='<span style="font-size:11px;color:#4ade80">- - Form</span>';
+  html+='</div></div>';
+
+  // Last 7 days TSS
+  html+='<div class="section-title">Letzte 7 Tage</div>';
+  history.slice(-7).reverse().forEach(function(d){
+    html+='<div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:4px">';
+    html+='<span style="font-size:12px;color:#94a3b8">'+new Date(d.date+'T12:00').toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'})+'</span>';
+    html+='<span style="font-size:12px;color:'+(d.tss>0?'#38bdf8':'#334155')+';font-weight:600">'+(d.tss>0?d.tss+' TSS':'&#8212;')+'</span>';
+    html+='</div>';
+  });
+
+  html+='<div class="card" style="margin-top:12px">';
+  html+='<div style="font-size:12px;font-weight:600;color:#38bdf8;margin-bottom:6px">Was bedeutet das?</div>';
+  html+='<div style="font-size:12px;color:#94a3b8;line-height:1.7"><b style="color:#38bdf8">CTL</b> = Fitness (42-Tage-Schnitt) &middot; <b style="color:#fb923c">ATL</b> = Ermuedung (7-Tage) &middot; <b style="color:#4ade80">TSB</b> = Form (CTL-ATL)<br>Fatigue Level = ATL/CTL: 1.0-1.3 = Sweet Spot &#x2705;</div>';
+  html+='</div></div>';
+  return html;
+}
+
+// ── Zones Tab ──────────────────────────────────────────────────────────────
+function renderZones(){
+  var runZones=[
+    {id:1,name:'Aktive Regeneration',range:'&lt; 141 bpm',pace:'&gt; 9:29 min/km'},
+    {id:2,name:'Grundlage',range:'141-166 bpm',pace:'8:33-9:29 min/km'},
+    {id:3,name:'Tempo',range:'166-175 bpm',pace:'7:04-8:33 min/km'},
+    {id:4,name:'Schwelle',range:'175-193 bpm',pace:'6:11-7:04 min/km'},
+    {id:5,name:'Hoch Intensiv',range:'193-197 bpm',pace:'&lt; 6:11 min/km'}
+  ];
+  var bikeZones=[
+    {id:1,name:'Aktive Regeneration',range:'&lt; 118 bpm'},
+    {id:2,name:'Grundlage',range:'118-142 bpm'},
+    {id:3,name:'Tempo',range:'142-161 bpm'},
+    {id:4,name:'Schwelle',range:'161-176 bpm'},
+    {id:5,name:'Hoch Intensiv',range:'176-192 bpm'}
+  ];
+  var html='<div style="padding-top:16px">';
+  html+='<div class="section-title">&#x1F3C3;&#x200D;&#x2640;&#xFE0F; Laufen &middot; HFmax 197</div>';
+  runZones.forEach(function(z){
+    html+='<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,0.03);border-radius:9px;border:1px solid rgba(255,255,255,0.05)">';
+    html+='<div style="width:4px;height:36px;border-radius:2px;background:'+ZONE_COLORS[z.id-1]+';flex-shrink:0"></div>';
+    html+='<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#f1f5f9">Zone '+z.id+' &middot; '+z.name+'</div>';
+    html+='<div style="font-size:11px;color:#64748b;margin-top:2px">'+z.range+(z.pace?' &middot; '+z.pace:'')+'</div></div>';
+    html+='<span class="tag" style="color:'+(z.id<=2?'#4ade80':'#fb923c')+';background:'+(z.id<=2?'#4ade8018':'#fb923c18')+'">'+(z.id<=2?'80%':'20%')+'</span>';
+    html+='</div>';
+  });
+  html+='<div class="section-title" style="margin-top:16px">&#x1F6B4;&#x200D;&#x2640;&#xFE0F; Rad &middot; HFmax 192</div>';
+  bikeZones.forEach(function(z){
+    html+='<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,0.03);border-radius:9px;border:1px solid rgba(255,255,255,0.05)">';
+    html+='<div style="width:4px;height:36px;border-radius:2px;background:'+ZONE_COLORS[z.id-1]+';flex-shrink:0"></div>';
+    html+='<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#f1f5f9">Zone '+z.id+' &middot; '+z.name+'</div>';
+    html+='<div style="font-size:11px;color:#64748b;margin-top:2px">'+z.range+'</div></div>';
+    html+='<span class="tag" style="color:'+(z.id<=2?'#4ade80':'#fb923c')+';background:'+(z.id<=2?'#4ade8018':'#fb923c18')+'">'+(z.id<=2?'80%':'20%')+'</span>';
+    html+='</div>';
+  });
+  html+='<div class="card" style="margin-top:8px">';
+  html+='<div style="font-size:12px;font-weight:600;color:#38bdf8;margin-bottom:6px">80/20 Regel</div>';
+  html+='<div style="font-size:12px;color:#94a3b8;line-height:1.7">80% aller Einheiten in Zone 1-2 (locker, aerob). 20% in Zone 3-5 (intensiv). Diese Verteilung maximiert Ausdaueraufbau und minimiert Verletzungsrisiko.</div>';
+  html+='</div></div>';
+  return html;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+// Pre-load training data from screenshots if no saved data exists
+var PRESET_CHECKINS = [
+  {
+    date:'2026-06-07',
+    morning:{feeling:4,legs:4,sleep:4,note:''},
+    post:{distance:'10',duration:'1:24:31',pace:'8:27',avgHr:'145',maxHr:'157',cadence:'157',elevation:'',tss:'95',injury:'',note:'Longrun (Radrennen abgesagt)',weather:''}
+  },
+  {
+    date:'2026-06-09',
+    morning:{feeling:4,legs:3,sleep:4,note:''},
+    post:{distance:'3.70',duration:'0:30:01',pace:'8:07',avgHr:'141',maxHr:'154',cadence:'159',elevation:'',tss:'32',injury:'',note:'Easy Run HR',weather:'&#9728;&#65039; Warm'}
+  },
+  {
+    date:'2026-06-11',
+    morning:{feeling:4,legs:4,sleep:4,note:''},
+    post:{distance:'6.01',duration:'0:45:24',pace:'7:34',avgHr:'156',maxHr:'173',cadence:'159',elevation:'',tss:'60',injury:'',note:'Getting back - Intervals',weather:'&#127783; Mild'}
+  }
+];
+
+loadLocal();
+// Add preset check-ins if not already saved
+if(STATE.checkins.length===0){
+  STATE.checkins=PRESET_CHECKINS.slice();
+  saveLocal();
+}
+if(getCloudKey()&&getCloudBin())loadFromCloud();
+render();
+</script>
+</body>
+</html>
